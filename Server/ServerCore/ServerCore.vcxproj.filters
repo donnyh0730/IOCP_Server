@@ -34,6 +34,7 @@
       <Filter>Thread</Filter>
     </ClInclude>
     <ClInclude Include="Lock.h" />
+    <ClInclude Include="DeadLockProfiler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePch.cpp">
@@ -52,5 +53,6 @@
       <Filter>Thread</Filter>
     </ClCompile>
     <ClCompile Include="Lock.cpp" />
+    <ClCompile Include="DeadLockProfiler.cpp" />
   </ItemGroup>
 </Project>

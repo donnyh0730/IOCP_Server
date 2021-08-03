@@ -34,10 +34,10 @@ class Lock//전역으로 떠있는 하나의 뮤텍스 객체처럼 활용 될거다.
 
 public:
 
-	void WriteLock();
-	void WriteUnlock();
-	void ReadLock();
-	void ReadUnlock();
+	void WriteLock(const char* name);
+	void WriteUnlock(const char* name);
+	void ReadLock(const char* name);
+	void ReadUnlock(const char* name);
 
 private :
 	Atomic<uint32> _lockFlag = EMPTY_FLAG;// 현재 쓰레드상황을 알려줄 32비트 플래그
@@ -47,31 +47,35 @@ private :
 class ReadLockGuard
 {
 public:
-	ReadLockGuard(Lock& lock) : _lock(lock)
+	ReadLockGuard(Lock& lock, const char* name)
+		: _lock(lock) , _name(name)
 	{
-		_lock.ReadLock();//생성되면서 뺑뺑이를 돌든가 락경합을 성공 하든가
+		_lock.ReadLock(_name);//생성되면서 뺑뺑이를 돌든가 락경합을 성공 하든가
 	}
 
 	~ReadLockGuard()
 	{
-		_lock.ReadUnlock();
+		_lock.ReadUnlock(_name);
 	}
 private:
 	Lock& _lock;
+	const char* _name;
 };
 
 class WriteLockGuard
 {
 public:
-	WriteLockGuard(Lock& lock) : _lock(lock)
+	WriteLockGuard(Lock& lock, const char* name) 
+		: _lock(lock), _name(name)
 	{
-		_lock.WriteLock();//생성되면서 뺑뺑이를 돌든가 락경합을 성공 하든가
+		_lock.WriteLock(_name);//생성되면서 뺑뺑이를 돌든가 락경합을 성공 하든가
 	}
 
 	~WriteLockGuard()
 	{
-		_lock.WriteUnlock();
+		_lock.WriteUnlock(_name);
 	}
 private:
 	Lock& _lock;
+	const char* _name;
 };

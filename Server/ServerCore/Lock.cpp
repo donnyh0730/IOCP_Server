@@ -1,13 +1,17 @@
 #include "pch.h"
 #include "Lock.h"
 #include "CoreTLS.h"
-
+#include "DeadLockProfiler.h"
 
 //여기 함수들은 쓰레드 job스택 내에서 lockguard생성시 불려지는 함수들이다. 
 //따라서 리턴에 성공할시 자원획득으로(쓰레드가 메인메모리값에 접근가능) 쓰레드 내의 남은 작업을 할 수 있게 해주므로,
 //while()루프를 5000번 돌거나 this_thread::yield()의 경우 경합 실패인 것이다.
-void Lock::WriteLock()
+void Lock::WriteLock(const char* name)
 {
+#if _DEBUG
+	GDeadLockProfiler->PushLock(name);
+#endif
+
 	//동일한 쓰레드가 소유할 경우 무조건 성공적으로 락을 잡을 수 있게 한다.
 	const uint32 lockThread = (_lockFlag.load() & WRITE_THREAD_MASK) >> 16;//현재 점유중인 쓰레드 ID
 	if (LThreadId == lockThread)
@@ -40,9 +44,12 @@ void Lock::WriteLock()
 	}
 }
 
-void Lock::WriteUnlock()
+void Lock::WriteUnlock(const char* name)
 {
-	//ReadLock다풀기 전에는, WriteLoc 불가능,
+#if _DEBUG
+	GDeadLockProfiler->PopLock(name);
+#endif
+	//ReadLock다풀기 전에는, WriteUnLock 불가능,
 	if ((_lockFlag.load() & READ_COUNT_MASK) != 0)//읽고 있는 쓰레드들이 있으면,
 		CRASH("INVALID_UNLOCK_ORDER");
 
@@ -52,8 +59,11 @@ void Lock::WriteUnlock()
 		_lockFlag.store(EMPTY_FLAG);
 }
 
-void Lock::ReadLock()
+void Lock::ReadLock(const char* name)
 {
+#if _DEBUG
+	GDeadLockProfiler->PushLock(name);
+#endif
 	//동일한 쓰레드가 소유하고 있다면 무조건성공.
 	//현재 점유중인 write쓰레드 ID
 	const uint32 lockThreadId = (_lockFlag.load() & WRITE_THREAD_MASK) >> 16;
@@ -82,8 +92,11 @@ void Lock::ReadLock()
 
 }
 
-void Lock::ReadUnlock()
+void Lock::ReadUnlock(const char* name)
 {
+#if _DEBUG
+	GDeadLockProfiler->PopLock(name);
+#endif
 	if ((_lockFlag.load() & READ_COUNT_MASK) == 0)//Read락이 없는데 풀려고 했을경우 크래시발생시킴
 		CRASH("MULTIPLE_UNLOCK");
 
