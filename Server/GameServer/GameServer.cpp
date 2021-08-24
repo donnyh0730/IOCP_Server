@@ -6,84 +6,75 @@
 #include <mutex>
 #include <windows.h>
 #include "ThreadManager.h"
-
+#include "Memory.h"
 #include "RefCounting.h"
 
-class Wraight : public RefCountable
+class Knight
 {
 public:
-	int _hp = 150;
-	int _posX = 0;
-	int _posY = 0;
-};
-
-using WraightRef = TSharedPtr<Wraight>;
-
-class Missile : public RefCountable
-{
-public:
-	void SetTarget(WraightRef target)
+	Knight()
 	{
-		_target = target;
-		// 중간에 개입 가능
-		//target->AddRef();
+		cout << "Kinght()" << endl;
+	}
+	Knight(int32 _hp)
+		:hp(_hp)
+	{
+		cout << "Kinght() int32" << endl;		
+	}
+	~Knight()
+	{
+		cout << "~Kinght()" << endl;
 	}
 
-	bool Update()
-	{
-		if (_target == nullptr)
-			return true;
+	//static void* operator new(size_t size)
+	//{
+	//	cout << "Knight new!!" << size << endl;
+	//	void* ptr = malloc(size);
+	//	return ptr;
+	//}
 
-		int posX = _target->_posX;
-		int posY = _target->_posY;
+	//static void operator delete(void* ptr)
+	//{
+	//	cout << "Knight delete!" << endl;
+	//	free(ptr);
+	//}
 
-		// TODO : 쫓아간다
-
-		if (_target->_hp == 0)
-		{
-			//_target->ReleaseRef();
-			_target = nullptr;
-			return true;
-		}
-
-		return false;
-	}
-
-	WraightRef _target = nullptr;
+	int32 hp = 100;
+	int32 mp = 10;
 };
 
-using MissileRef = TSharedPtr<Missile>;
+//new 와 delete의 글로벌 오버로딩
+//void* operator new(size_t size)
+//{
+//	cout << "new!!" << size << endl;
+//	void* ptr = malloc(size);
+//	return ptr;
+//}
+//
+//void operator delete(void* ptr)
+//{
+//	cout << "delete!" << endl;
+//	free(ptr);
+//}
+//
+//void* operator new[](size_t size)
+//{
+//	cout << "new[]!!" << size << endl;
+//	void* ptr = malloc(size);
+//	return ptr;
+//}
+//
+//void operator delete[](void* ptr)
+//{
+//	cout << "delete![]" << endl;
+//	free(ptr);
+//}
 
 int main()
 {
-	WraightRef wraight(new Wraight());
-	wraight->ReleaseRef();
-	MissileRef missile(new Missile());
-	missile->ReleaseRef();
+	Knight* knight = xnew<Knight>(200);
 
-	missile->SetTarget(wraight);
-
-	// 레이스가 피격 당함
-	wraight->_hp = 0;
-	//delete wraight;
-	//wraight->ReleaseRef();
-	wraight = nullptr;
-
-	while (true)
-	{
-		if (missile)
-		{
-			if (missile->Update())
-			{
-				//missile->ReleaseRef();
-				missile = nullptr;
-			}
-		}
-	}
-
-	//missile->ReleaseRef();
-	missile = nullptr;
-	//delete missile;
+	xdelete(knight);
 }
 
 /*아래로를 1단원 내용의 예제 소스를 주석으로 남겨둡니다.*/
@@ -230,7 +221,7 @@ public:
 		//compare_exchange_strong내부 의사 코드.
 		//스핀락 bool변수 (_locked의 값)이 내가 원하는 값(expectedValue)(false)과 같은 경우 bool변수(_locked)값을 새로운 값(newValue)으로 변경한다.
 		//원래는 뮤텍스이전에 스핀락을 위해사용되던 코드이다. 많이 사용 하게 될지는 모르겠다...
-		
+
 		while (_locked.compare_exchange_strong(expectedValue, newValue) == false)//
 		{
 			expectedValue = false;
@@ -250,7 +241,7 @@ public:
 		//	expectedValue = locked;
 		//	return false;
 		//}
-		
+
 	}
 	void unlock()
 	{
