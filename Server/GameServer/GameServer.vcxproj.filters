@@ -21,8 +21,6 @@
     <ClCompile Include="ConcurrentStack.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="AccountManager.cpp" />
-    <ClCompile Include="PlayerManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -34,7 +32,5 @@
     <ClInclude Include="ConcurrentQueue.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="AccountManager.h" />
-    <ClInclude Include="PlayerManager.h" />
   </ItemGroup>
 </Project>
