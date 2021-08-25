@@ -32,7 +32,6 @@ public:
 	//	void* ptr = malloc(size);
 	//	return ptr;
 	//}
-
 	//static void operator delete(void* ptr)
 	//{
 	//	cout << "Knight delete!" << endl;
@@ -518,7 +517,7 @@ int main()
 //	}
 //}
 
-/*LockBasedQue,Stack*/
+/*LockBasedQue,Stack사용 예제*/
 //#include "ConcurrentQueue.h"
 //#include "ConcurrentStack.h"
 //LockQueue<int32> q;
