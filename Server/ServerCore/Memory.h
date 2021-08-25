@@ -23,7 +23,7 @@ template<typename Type>
 void xdelete(Type* obj)
 {
 	obj->~Type();
-	BaseAllocator::Release(obj);
+	xrelease(obj);
 
 }
 

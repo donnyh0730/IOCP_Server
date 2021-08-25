@@ -8,8 +8,13 @@
 #include "ThreadManager.h"
 #include "Memory.h"
 #include "RefCounting.h"
+#include "Allocator.h"
+class Player
+{
 
-class Knight
+};
+
+class Knight : public Player
 {
 public:
 	Knight()
@@ -46,9 +51,10 @@ public:
 
 int main()
 {
-	Knight* knight = xnew<Knight>(200);
+	Vector<Knight> v(100);
 
-	xdelete(knight);
+	Map<int32, Knight> m;
+	m[100] = Knight();
 }
 
 /*아래로를 1단원 내용의 예제 소스를 주석으로 남겨둡니다.*/
