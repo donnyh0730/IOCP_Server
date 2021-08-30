@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Allocator.h"
-
+#include "Memory.h"
 /*
 	BaseAllocator
 */
@@ -50,7 +50,17 @@ void StompAllocator::Release(void* ptr)
 	const int64 address = reinterpret_cast<int64>(ptr);//[             ][       [   ]]
 	const int64 OffsetfromBase = address % PAGE_SIZE;
 	const int64 baseAddress = address - OffsetfromBase;
-	//(address % PAGE_SIZE) == [     /    ][     /     ] [|잘려진 이부분|[   ]]페이지 사이즈로 메모리 주소번호를
+	//OffsetfromBase == [     /    ][     /     ][|잘려진 이부분|[   ]]페이지 사이즈로 메모리 주소번호를
 	//나누고 남은 나머지부분
 	::VirtualFree(reinterpret_cast<void*>(baseAddress), 0, MEM_RELEASE);
+}
+
+void* PoolAllocator::Alloc(int32 size)
+{
+	return GMemory->Allocate(size);
+}
+
+void PoolAllocator::Release(void* ptr)
+{
+	GMemory->Release(ptr);
 }

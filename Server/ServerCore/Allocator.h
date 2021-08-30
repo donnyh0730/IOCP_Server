@@ -21,11 +21,20 @@ public:
 	static void*	Alloc(int32 size);
 	static void		Release(void* ptr);
 };
+/*
+	PoolAllocator
+*/
+class PoolAllocator
+{
+public:
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
+};
 
 /*
 	STL Allocator
 */
-
+//Stl컨테이너에 커스텀한 Allocator를 사용하기위해서 구현해주어야하는 Class인터페이스
 template <typename T>
 class StlAllocator
 {
@@ -35,9 +44,9 @@ public:
 	StlAllocator() {}
 	
 	template<typename other>
-	StlAllocator(const StlAllocator<other>&) {}//다른타입을 가지는 벡터로 복사생성하려고 할때.
+	StlAllocator(const StlAllocator<other>&) {}//다른타입을 컨테이너에서 복사하려할때(거의 쓰이지않음)
 
-	T* allocate(size_t count)//벡터의 사이즈를 return하는 함수.
+	T* allocate(size_t count)
 	{
 		const int32 size = static_cast<int32>(count * sizeof(T));
 		return static_cast<T*>(xalloc(size));

@@ -51,10 +51,23 @@ public:
 
 int main()
 {
-	Vector<Knight> v(100);
+	for (int32 i = 0; i < 5; ++i)
+	{
+		GThreadManager->Launch([]()
+			{
+				while (true)
+				{
+					Vector<Knight> v(100);
 
-	Map<int32, Knight> m;
-	m[100] = Knight();
+					Map<int32, Knight> m;
+					m[100] = Knight();
+					this_thread::sleep_for(10ms);
+				}
+
+			});
+	}
+
+	GThreadManager->Join();
 }
 
 /*아래로를 1단원 내용의 예제 소스를 주석으로 남겨둡니다.*/
