@@ -1,7 +1,7 @@
 //절대  define 뒤에 주석 쓰지말것. 컴파일이 안됨.
 #pragma once
 
-
+#define _STOMP
 #define OUT
 /*
 * Lock
@@ -17,13 +17,13 @@
 * Memory
 */
 
-#ifdef _DEBUG
-#define xalloc(size)		PoolAllocator::Alloc(size)
-#define xrelease(ptr)		PoolAllocator::Release(ptr)
-#else
-#define xalloc(size)		BaseAllocator::Alloc(size)
-#define xrelease(ptr)		BaseAllocator::Release(ptr)
-#endif
+//#ifdef _DEBUG
+//#define xalloc(size)		PoolAllocator::Alloc(size)
+//#define xrelease(ptr)		PoolAllocator::Release(ptr)
+//#else
+//#define xalloc(size)		BaseAllocator::Alloc(size)
+//#define xrelease(ptr)		BaseAllocator::Release(ptr)
+//#endif
 /*
 * Crash
 */

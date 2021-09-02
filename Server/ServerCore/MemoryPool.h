@@ -16,7 +16,7 @@ struct MemoryHeader//메모리풀 한칸마다 들어가게될 데이터
 		return reinterpret_cast<void*>(++ptr);
 	}
 
-	static MemoryHeader* GetHeader(void* ptr)
+	static MemoryHeader* DeatachHeader(void* ptr)
 	{
 		MemoryHeader* header = reinterpret_cast<MemoryHeader*>(ptr) - 1;
 		return header;
@@ -38,8 +38,8 @@ private :
 	USE_LOCK;
 
 	int32 _allocSize = 0;
-	atomic<int32> _allocCount = 0;
-
+	atomic<int32> _useCount = 0;
+	atomic<int32> _reserveCount = 0;
 	queue<MemoryHeader*> _queue;//실질적인 객체가 할당되는 메모리공간
 };
 

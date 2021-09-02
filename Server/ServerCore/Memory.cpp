@@ -58,7 +58,9 @@ void* Memory::Allocate(int32 size)
 {
 	MemoryHeader* header = nullptr;
 	const int32 allocSize = size + sizeof(MemoryHeader);//요청받은 사이즈에 헤더사이즈까지 더한다,
-
+#ifdef _STOMP
+	header = reinterpret_cast<MemoryHeader*>(StompAllocator::Alloc(allocSize));
+#else
 	if (allocSize >= MAX_ALLOC_SIZE)
 	{
 		//메모리풀의 최대크기를 벗어난 사이즈라면 일반 할당을해준다.
@@ -68,15 +70,20 @@ void* Memory::Allocate(int32 size)
 	{
 		header = _pooltable[allocSize]->Pop();//요청받은 사이즈의 메모리풀을 바로 찾아서 헤더주소를 넘겨준다.
 	}
+#endif
+	
 	return MemoryHeader::AttatchHeader(header, allocSize);
 }
 
 void Memory::Release(void* ptr)
 {
-	MemoryHeader* header = MemoryHeader::GetHeader(ptr);
+	MemoryHeader* header = MemoryHeader::DeatachHeader(ptr);
 	const int32 allocSize = header->allocSize;
 	ASSERT_CRASH(allocSize > 0);
 
+#ifdef _STOMP
+	StompAllocator::Release(header);
+#else
 	if (allocSize > MAX_ALLOC_SIZE)
 	{
 		::free(header);
@@ -85,4 +92,6 @@ void Memory::Release(void* ptr)
 	{
 		_pooltable[allocSize]->Push(header);
 	}
+#endif
+
 }

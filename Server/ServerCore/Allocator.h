@@ -23,6 +23,7 @@ public:
 };
 /*
 	PoolAllocator
+	기본Allocator이기는 하나 전처리기 지시문에의해 분기할 수 있다.
 */
 class PoolAllocator
 {
@@ -49,11 +50,13 @@ public:
 	T* allocate(size_t count)
 	{
 		const int32 size = static_cast<int32>(count * sizeof(T));
-		return static_cast<T*>(xalloc(size));
+		//return static_cast<T*>(xalloc(size));
+		return static_cast<T*>(PoolAllocator::Alloc(size));
 	}
 
 	void deallocate(T* ptr, size_t count)
 	{
-		xrelease(ptr);
+		//xrelease(ptr);
+		PoolAllocator::Release(ptr);
 	}
 };

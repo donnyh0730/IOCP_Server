@@ -22,7 +22,8 @@ void MemoryPool::Push(MemoryHeader* ptr)
 	ptr->allocSize = 0;
 
 	_queue.push(ptr);
-	_allocCount.fetch_sub(1);
+	_useCount.fetch_sub(1);
+	_reserveCount.fetch_add(1);
 }
 
 MemoryHeader* MemoryPool::Pop()
@@ -47,8 +48,9 @@ MemoryHeader* MemoryPool::Pop()
 	else//que에서 빼내온건데 사이즈가 0이면 문제가 있는 것임으로 크래쉬.
 	{
 		ASSERT_CRASH(header->allocSize == 0);
+		_reserveCount.fetch_sub(1);
 	}
-	_allocCount.fetch_add(1);//이 풀에있는 객체의 카운트가 하나 늘어났다.
+	_useCount.fetch_add(1);//이 풀에있는 객체의 카운트가 하나 늘어났다.
 
 	return header;
 }

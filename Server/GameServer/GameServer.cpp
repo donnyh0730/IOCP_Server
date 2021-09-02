@@ -31,26 +31,32 @@ public:
 		cout << "~Kinght()" << endl;
 	}
 
-	//static void* operator new(size_t size)
-	//{
-	//	cout << "Knight new!!" << size << endl;
-	//	void* ptr = malloc(size);
-	//	return ptr;
-	//}
-	//static void operator delete(void* ptr)
-	//{
-	//	cout << "Knight delete!" << endl;
-	//	free(ptr);
-	//}
-
 	int32 hp = 100;
 	int32 mp = 10;
 };
 
-
+class Monster
+{
+public:
+	int8 id;
+};
 
 int main()
 {
+	Knight* knights[100];
+	for (int32 i = 0; i < 100; ++i)
+	{
+		knights[i] = ObjectPool<Knight>::Pop();
+	}
+	for (int32 i = 0; i < 100; ++i)
+	{
+		ObjectPool<Knight>::Push(knights[i]);
+		knights[i] = nullptr;
+	}
+
+	shared_ptr<Knight> sptr = ObjectPool<Knight>::MakeShared();
+	shared_ptr<Knight> sptr2 = MakeShared<Knight>();
+
 	for (int32 i = 0; i < 5; ++i)
 	{
 		GThreadManager->Launch([]()
