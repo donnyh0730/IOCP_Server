@@ -4,7 +4,7 @@
 class SocketUtils
 {
 public:
-	static LPFN_CONNECTEX		ConnetEx;
+	static LPFN_CONNECTEX		ConnectEx;
 	static LPFN_DISCONNECTEX	DisconnectEx;
 	static LPFN_ACCEPTEX		AcceptEx;
 
@@ -13,7 +13,7 @@ public:
 	static void Clear();
 
 	static bool BindWindowsFunction(SOCKET socket, GUID guid, LPVOID* fn);
-	static SOCKET CreatSocket();
+	static SOCKET CreateSocket();
 
 	static bool SetLinger(SOCKET socket, uint16 onoff, uint16 linger);
 	static bool SetReuseAddress(SOCKET socket, bool flag);

@@ -1,0 +1,58 @@
+#include "pch.h"
+#include "IocpCore.h"
+#include "IocpEvent.h"
+
+// TEMP
+IocpCore GIocpCore;
+
+/*--------------
+	IocpCore
+---------------*/
+
+IocpCore::IocpCore()
+{
+	_iocpHandle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
+	//이렇게 기본적인 인자를 넣어주면 컴플리션 포트를 사용할 준비를 하게된다.HANDLE라는 객체를 리턴.
+	ASSERT_CRASH(_iocpHandle != INVALID_HANDLE_VALUE);
+}
+
+IocpCore::~IocpCore()
+{
+	::CloseHandle(_iocpHandle);
+}
+
+bool IocpCore::Register(IocpObject* iocpObject)
+{
+	//첫번째 자리에 HANDLE이 Socket을 의미하기도 하기떄문에 Socket대신에 Handle을 넘겨도 상관없다. 
+	//내부적으로 Handle이 Socket을 물고있기 때문이다. iocpObject->GetHandle()에서 _iocpHandle로 등록을 한다.
+	//IocpObject가 결국은 세션의 역할을 하기때문에 키값도 IocpObject의 주소를 사용한다.
+	return ::CreateIoCompletionPort(iocpObject->GetHandle(), _iocpHandle, reinterpret_cast<ULONG_PTR>(iocpObject), 0);
+}
+
+bool IocpCore::Dispatch(uint32 timeoutMs)
+{
+	DWORD numOfBytes = 0;
+	IocpObject* iocpObject = nullptr;
+	IocpEvent* iocpEvent = nullptr;
+	//계속 관찰하면서 컴플리션 포트에 일감이 들어올때까지 쓰레드를 쉬고있는다.
+	//등록된 소켓에서 일감이 오면 위의 두개의 (iocpObject,iocpEvent)널포인터가 채워지면서 리턴하게된다.
+	if (::GetQueuedCompletionStatus(_iocpHandle, OUT & numOfBytes, OUT reinterpret_cast<PULONG_PTR>(&iocpObject), OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
+	{
+		iocpObject->Dispatch(iocpEvent, numOfBytes);//만약 일감시 정상적으로 들어왔다면 해당 이벤트를 실행한다.
+	}
+	else
+	{
+		int32 errCode = ::WSAGetLastError();
+		switch (errCode)
+		{
+		case WAIT_TIMEOUT:
+			return false;
+		default:
+			// TODO : 로그 찍기
+			iocpObject->Dispatch(iocpEvent, numOfBytes);
+			break;
+		}
+	}
+
+	return true;
+}

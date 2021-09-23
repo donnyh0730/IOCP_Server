@@ -7,21 +7,21 @@
 #include <windows.h>
 #include "ThreadManager.h"
 #include "SocketUtils.h"
+#include "Listener.h"
 
 int main()
 {
-	SOCKET socket = SocketUtils::CreatSocket();
+	Listener listener;
+	listener.StartAccept(NetAddress(L"127.0.0.1", 7777));
 
-	SocketUtils::BindAnyAddress(socket, 7777);
-
-	SocketUtils::Listen(socket);
-
-	SOCKET clientSocket = accept(socket, nullptr, nullptr);
-
-	cout << "Client Accepted!!" << endl;
-	while (true)
+	for (int32 i = 0; i < 5; i++)
 	{
-
+		GThreadManager->Launch([=]() {
+			while (true)
+			{
+				GIocpCore.Dispatch();
+			}
+			});
 	}
 	GThreadManager->Join();
 }
