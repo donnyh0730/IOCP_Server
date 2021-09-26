@@ -23,10 +23,10 @@ public:
 	IocpEvent(EventType type);
 
 	void		Init();
-	EventType	GetType() { return _type; }
 
-protected:
-	EventType	_type;
+public:
+	EventType		eventType;
+	IocpObjectRef	owner;//이 이벤트에 대한 처리를 하는 주체는 결국  IocpObject이다.
 };
 
 /*----------------
@@ -48,13 +48,9 @@ class AcceptEvent : public IocpEvent
 public:
 	AcceptEvent() : IocpEvent(EventType::Accept) { }
 
-	void		SetSession(Session* session) { _session = session; }
-	Session* GetSession() { return _session; }
-
-private:
-	Session* _session = nullptr;
+public:
+	SessionRef	session = nullptr;
 };
-
 /*----------------
 	RecvEvent
 -----------------*/
