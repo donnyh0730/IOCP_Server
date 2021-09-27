@@ -117,11 +117,6 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 	}
 
 	session->SetNetAddress(NetAddress(sockAddress));
-
-	cout << "Client Connected!" << endl;
-
-	// TODO
-
-	RegisterAccept(acceptEvent);//accept프로세스가 끝나면 다시 accept를호출해 주어야하기때문에 
-	//while루프가 아닌 재귀적으로 호출해주었다. 
+	session->ProcessConnect();
+	RegisterAccept(acceptEvent);
 }

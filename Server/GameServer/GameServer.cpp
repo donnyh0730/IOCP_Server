@@ -1,18 +1,28 @@
-﻿#include "pch.h"//미리 빌드된 헤더를 사용 한다. 매번 빌드시 다시 빌드되지 않으므로 성능상 유리하지만pch헤더의 내용이 바뀌는 경우 빌드 타임이 갑자기 늘어 날 수 있다.
-#include "CorePch.h"//ServerCore에 있는 정적 러이브러리 API들을 인클루드 하기위해 사용한다.
-#include <iostream>
-#include <thread>
-#include <atomic>
-#include <mutex>
-#include <windows.h>
+﻿#include "pch.h"
 #include "ThreadManager.h"
-#include "SocketUtils.h"
 #include "Service.h"
 #include "Session.h"
 
 class GameSession : public Session
 {
+public:
+	~GameSession()
+	{
+		cout << "~GameSession" << endl;
+	}
 
+	virtual int32 OnRecv(BYTE* buffer, int32 len) override
+	{
+		// Echo
+		cout << "OnRecv Len = " << len << endl;
+		Send(buffer, len);
+		return len;
+	}
+
+	virtual void OnSend(int32 len) override
+	{
+		cout << "OnSend Len = " << len << endl;
+	}
 };
 
 int main()
