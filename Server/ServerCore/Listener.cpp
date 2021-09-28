@@ -84,9 +84,15 @@ void Listener::RegisterAccept(AcceptEvent* acceptEvent)
 
 	DWORD bytesReceived = 0;
 	//기본적으로 accept()를 호출한 것이기 때문에 논블로킹 옵션을 걸지않는 이상 여기서 블로킹이 걸려있게 된다.
-	if (false == SocketUtils::AcceptEx(_socket, session->GetSocket(), session->_recvBuffer,
-		0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16,
-		OUT & bytesReceived, static_cast<LPOVERLAPPED>(acceptEvent)))
+	if (false == SocketUtils::AcceptEx(
+		_socket, 
+		session->GetSocket(), 
+		session->_recvBuffer.WritePos(), 
+		0, 
+		sizeof(SOCKADDR_IN) + 16, 
+		sizeof(SOCKADDR_IN) + 16, 
+		OUT & bytesReceived, 
+		static_cast<LPOVERLAPPED>(acceptEvent)))
 	{
 		//보통 false 인데 여기로 들어오게되면 펜딩이 걸려있을 확율이 높다. 펜딩이 걸렸을경우도 false를 리턴하기 때문이다.
 		const int32 errorCode = ::WSAGetLastError();
@@ -97,7 +103,19 @@ void Listener::RegisterAccept(AcceptEvent* acceptEvent)
 		}
 	}
 }
-
+/*
+BOOL
+(PASCAL FAR * LPFN_ACCEPTEX)(
+	_In_ SOCKET sListenSocket,
+	_In_ SOCKET sAcceptSocket,
+	_Out_writes_bytes_(dwReceiveDataLength+dwLocalAddressLength+dwRemoteAddressLength) PVOID lpOutputBuffer,
+	_In_ DWORD dwReceiveDataLength,
+	_In_ DWORD dwLocalAddressLength,
+	_In_ DWORD dwRemoteAddressLength,
+	_Out_ LPDWORD lpdwBytesReceived,
+	_Inout_ LPOVERLAPPED lpOverlapped
+	);
+*/
 void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 {
 	SessionRef session = acceptEvent->session;

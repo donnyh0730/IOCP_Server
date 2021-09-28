@@ -7,7 +7,8 @@
 	Session
 ---------------*/
 
-Session::Session()
+Session::Session() :
+	_recvBuffer(BUFFER_SIZE)
 {
 	_socket = SocketUtils::CreateSocket();
 }
@@ -137,8 +138,8 @@ void Session::RegisterRecv()
 	_recvEvent.owner = shared_from_this(); // ADD_REF
 
 	WSABUF wsaBuf;
-	wsaBuf.buf = reinterpret_cast<char*>(_recvBuffer);
-	wsaBuf.len = len32(_recvBuffer);
+	wsaBuf.buf = reinterpret_cast<char*>(_recvBuffer.WritePos());
+	wsaBuf.len = _recvBuffer.FreeSize();
 
 	DWORD numOfBytes = 0;
 	DWORD flags = 0;
@@ -203,9 +204,23 @@ void Session::ProcessRecv(int32 numOfBytes)
 		return;
 	}
 
-	// 컨텐츠 코드에서 재정의
-	OnRecv(_recvBuffer, numOfBytes);
-
+	if (_recvBuffer.OnWrite(numOfBytes) == false)
+	{
+		Disconnect(L"OnWirte Overflow");
+		return;
+	}
+	int32 dataSize = _recvBuffer.DataSize();
+	int32 processedLen = OnRecv(_recvBuffer.ReadPos(), dataSize);// SeverSession 컨텐츠 코드에서 재정의
+	//보통은 OnRecv에서 한번에 들어온 데이터의 크기만큼 처리를 한번에 다 해주기때문에, 
+	//processLen의 값이 dataSize와 똑같게 들어온다. 
+	if (processedLen < 0 || dataSize < processedLen || _recvBuffer.OnRead(processedLen) == false)
+	{
+		Disconnect(L"OnRead Overflow");
+		return;
+	}
+	// 옵셋 정리
+	_recvBuffer.Clean();//보통 OnRecv에서 처리된 데이터사이즈와 처음에 들어온 RecvData Size가 보통 같기때문에 
+	//버퍼의 ReadOffset과 WriteOffet이 0번위치로 돌아가 있게될 확율이 높다. 거의 99프로
 	// 수신 등록
 	RegisterRecv();
 }
