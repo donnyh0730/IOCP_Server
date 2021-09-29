@@ -4,3 +4,4 @@
 //쓰레드를 생성하면 아래의 variable들이 생성된다.
 thread_local uint32 LThreadId = 0;
 thread_local std::stack<int32>	LLockStack;
+thread_local SendBufferChunkRef	LSendBufferChunk;

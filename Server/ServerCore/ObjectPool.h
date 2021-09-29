@@ -30,11 +30,11 @@ public:
 #endif
 		
 	}
-
-	static shared_ptr<Type> MakeShared()
+	template<typename... Args>
+	static shared_ptr<Type> MakeShared(Args&&... args)
 	{
 		//쉐어드포인터의 생성자에 할당기와 딜리터를 넣어서 쉐어드 포인터를 만들 수 있다.
-		shared_ptr<Type> ptr = { Pop(),Push };
+		shared_ptr<Type> ptr = { Pop(forward<Args>(args)...), Push };
 		return ptr;
 	}
 
