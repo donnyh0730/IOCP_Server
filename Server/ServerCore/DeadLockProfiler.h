@@ -19,7 +19,6 @@ private:
 	unordered_map<const char*, int32>	_nameToId;//락을 호출한 객체의 이름이 담기는
 	unordered_map<int32, const char*>	_IdToName;
 
-	stack<int32>						_lockStack;
 	map<int32, set<int32>>				_lockHistory;//락정점 노드들 각각의 순번기록
 
 	Mutex _lock;
@@ -31,4 +30,5 @@ private:
 	vector<int32>	_parent;
 };
 
-//lockstack은 말그대로 호출순번이 stack으로 이루어져 있어야한다. 
+//1. lockstack은 말그대로 호출순번이 stack으로 이루어져 있어야한다. 
+//2. 데드락 프로파일러는 
