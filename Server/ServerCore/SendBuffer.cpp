@@ -86,6 +86,7 @@ SendBufferRef SendBufferManager::Open(uint32 size)
 
 SendBufferChunkRef SendBufferManager::Pop()
 {
+	cout << "Pop SENDBUFFERCHUNK" << endl;
 	{
 		WRITE_LOCK;
 		if (_sendBufferChunks.empty() == false)//최초 청크벡터에 여유분이 생성되어 있으면
@@ -108,6 +109,7 @@ void SendBufferManager::Push(SendBufferChunkRef buffer)
 
 void SendBufferManager::PushGlobal(SendBufferChunk* buffer)
 {
+	cout << "PushGlobal SENDBUFFERCHUNK" << endl;
 	//결국 SendBufferChunk가 샌드버퍼가 모두 소멸되면서 레프카운트가 0되어 이 코드로 들어오게되었는데,
 	//이 함수가 끝나면 원래 사라질 운명이었으나 다시한번 SendBufferChunkRef(buffer, PushGlobal) 이런식으로
 	//쉐어드 포인터를 생성해주어서 청크를 날리지 않고 살려둔다음, 청크매니저의 벡터에 push_back해둔다.
