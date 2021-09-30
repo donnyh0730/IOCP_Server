@@ -305,20 +305,20 @@ PacketSession::~PacketSession()
 }
 
 // [size(2)][id(2)][data....][size(2)][id(2)][data....]
-int32 PacketSession::OnRecv(BYTE* buffer, int32 len)//len = 리시브받은 총 크기.
+int32 PacketSession::OnRecv(BYTE* buffer, int32 len/*30*/)//len = 실제 받은 잘린경우도 있다.
 {
 	int32 processLen = 0;
 
 	while (true)
 	{
-		int32 dataSize = len - processLen;
+		int32 dataSize/*30*/ = len/*30*/ - processLen/*0*/;
 		// 최소한 헤더는 파싱할 수 있어야 한다
-		if (dataSize < sizeof(PacketHeader))
+		if (dataSize/*30*/ < sizeof(PacketHeader)/*4*/)
 			break;
 
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&buffer[processLen]));
 		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
-		if (dataSize < header.size)
+		if (dataSize/*30*/ < header.size/*36*/)//여기서 processlen 0으로 리턴
 			break;
 
 		// 패킷 조립 성공
