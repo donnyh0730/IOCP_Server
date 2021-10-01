@@ -3,7 +3,7 @@
 /*----------------
 	BufferWriter
 -----------------*/
-
+//Send Buffer에 데이터를 넣기 편하도록 << 연산자 오버로딩틀 통해 효율을 높혀주는 클래스.
 class BufferWriter
 {
 public:
@@ -22,9 +22,6 @@ public:
 
 	template<typename T>
 	T* Reserve();
-
-	template<typename T>
-	BufferWriter& operator<<(const T& src);
 
 	template<typename T>
 	BufferWriter& operator<<(T&& src);
@@ -47,17 +44,13 @@ T* BufferWriter::Reserve()
 }
 
 template<typename T>
-BufferWriter& BufferWriter::operator<<(const T& src)
-{
-	*reinterpret_cast<T*>(&_buffer[_pos]) = src;
-	_pos += sizeof(T);
-	return *this;
-}
-
-template<typename T>
 BufferWriter& BufferWriter::operator<<(T&& src)
 {
-	*reinterpret_cast<T*>(&_buffer[_pos]) = std::move(src);
+	using DataType = std::remove_reference_t<T>;
+	*reinterpret_cast<DataType*>(&_buffer[_pos]) = std::forward<DataType>(src);
 	_pos += sizeof(T);
 	return *this;
 }
+//템플릿 을 적용한 함수에 인자를 T&& src 처럼 R밸류 래퍼런싱을 하겠다 라고 하면,
+//이것은 "보편참조를 하겠다" 라는 말과 같아진다. 보편참조는 Lvalue, Rvalue 상관없이 모두 받는다.
+//const uint64& 이런식으로 값복사가 일어남.
