@@ -42,6 +42,8 @@ T* BufferWriter::Reserve()
 	_pos += sizeof(T);
 	return ret;
 }
+//실제로 데이터가 기입(reverve)되는 것은아니고 버퍼의 현재 쓰여질 위치값을 받아서 
+//그위치에 T타입으로 쓰여질 준비를한다. 
 
 template<typename T>
 BufferWriter& BufferWriter::operator<<(T&& src)

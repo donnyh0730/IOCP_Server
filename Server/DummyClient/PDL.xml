@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--XML로 패킷의 구조를 만들어 두는 이유, 서버와 클라이언트가 각각 다른 언어로 코드가 구성되었을 경우,
+데이터를 파싱할때 바이트단위로 내용이 달라질 수 있기때문에 XML이라는 공용 환경 디스크립션 포맷으로
+일단 구조를 기술해두면 이 XML파일을 통해서 코드제너레이터툴로 서버환경과 클라환경에 각각 맞도록 자동화
+를 시킬 수 있게되기 때문에, XML이나 JSON을 만들어서 패킷설계를 맞추는 것이다.
+_-->
+<PDL>
+  <Packet name="S_TEST" desc="테스트 용도">
+    <Field name="id" type="uint64" desc=""/>
+    <Field name="hp" type="uint32" desc=""/>
+    <Field name="attack" type="uint16" desc=""/>
+    <List name="buffs" desc="">
+      <Field name="buffId" type="uint64" desc=""/>
+      <Field name="remainTime" type="float" desc=""/>
+    </List>
+  </Packet>
+</PDL>
