@@ -16,9 +16,6 @@
     <Filter Include="Network">
       <UniqueIdentifier>{02bdb898-0579-4572-90d5-ee8be619f950}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PersonalLog">
-      <UniqueIdentifier>{7c84ed47-2222-4a2c-a553-5ca76df50c89}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CorePch.h">
