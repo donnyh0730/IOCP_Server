@@ -21,7 +21,7 @@ public:
 	bool			Write(void* src, uint32 len);
 
 	template<typename T>
-	T* Reserve();
+	T* Reserve(uint16 count = 1);
 
 	template<typename T>
 	BufferWriter& operator<<(T&& src);
@@ -33,13 +33,13 @@ private:
 };
 
 template<typename T>
-T* BufferWriter::Reserve()
+T* BufferWriter::Reserve(uint16 count)
 {
-	if (FreeSize() < sizeof(T))
+	if (FreeSize() < (sizeof(T) * count))
 		return nullptr;
 
 	T* ret = reinterpret_cast<T*>(&_buffer[_pos]);
-	_pos += sizeof(T);
+	_pos += (sizeof(T) * count);
 	return ret;
 }
 //실제로 데이터가 기입(reverve)되는 것은아니고 버퍼의 현재 쓰여질 위치값을 받아서 

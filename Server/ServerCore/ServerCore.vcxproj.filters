@@ -170,8 +170,5 @@
     <ClCompile Include="BufferWriter.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="StudyReminderText.txt">
-      <Filter>PersonalLog</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
