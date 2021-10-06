@@ -6,7 +6,13 @@ import "Struct.proto";
 
 message C_TEST
 {
-	uint64 id =1;
+	uint64 id = 1;
+}
+
+message C_MOVE
+{
+	uint64 id = 1;
+	uint32 pos = 2;
 }
 
 message S_TEST
@@ -14,11 +20,10 @@ message S_TEST
 	uint64 id = 1;
 	uint32 hp = 2;
 	uint32 attack = 3;
-	repeated BuffData buffs = 4;
-	PlayerType type = 5; 
+	repeated BuffData buffs = 4; 
 }
 
 message S_LOGIN
 {
-
+	//enum PacketId { NONE = 0; }
 }
