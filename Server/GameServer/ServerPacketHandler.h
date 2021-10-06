@@ -1,42 +1,81 @@
 #pragma once
-#include "BufferReader.h"
-#include "BufferWriter.h"
 #include "Protocol.pb.h"
-enum
+
+using PacketHandlerFunc = std::function<bool(PacketSessionRef&, BYTE*, int32)>;
+//std::function<리턴타입(파라미터타입)> 함수의 주소를 저장하는 포인터 변수타입을 지정한다.
+extern PacketHandlerFunc GPacketHandler[UINT16_MAX];//함수포인터 65535개 랜덤액세스로 빠르게 함수호출가능
+
+
+enum : uint16
 {
-	S_TEST = 1
+	// TODO : 자동화
+	PKT_S_TEST = 1,
+	PKT_S_LOGIN = 2,
 };
 
-struct BuffData
-{
-	uint64 buffId;
-	float remainTime;
-};
+// TODO : 자동화
+// Custom Handlers
+bool Handle_INVALID(PacketSessionRef& session, BYTE* buffer, int32 len);
+// TODO :자동화
+bool Handle_S_TEST(PacketSessionRef& session, Protocol::S_TEST& pkt);
 
 class ServerPacketHandler
 {
 public:
-	static void HandlePacket(BYTE* buffer, int32 len);
-	static SendBufferRef MakeSendBuffer(Protocol::S_TEST& pkt);
+	
+	static void Init()
+	{
+		for (int32 i = 0; i < UINT16_MAX; i++)//처음에는 전부다 Invalide로초기화 바인딩.
+			GPacketHandler[i] = Handle_INVALID;
+		// TODO : 자동화
+		GPacketHandler[PKT_S_TEST] = [](PacketSessionRef& session, BYTE* buffer, int32 len)
+		{
+			return HandlePacket<Protocol::S_TEST>(Handle_S_TEST, session, buffer, len);
+			//람다로 익명함수를 만들어서 넣어줄 건데, HandlePacket이 또 템플릿 함수이다. 
+		};
+		
+	}
+
+	static bool HandlePacket(PacketSessionRef& session, BYTE* buffer, int32 len)
+	{
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+		return GPacketHandler[header->id](session, buffer, len);
+	}
+
+	// TODO : 자동화
+	static SendBufferRef MakeSendBuffer(Protocol::S_TEST& pkt)
+	{
+		return MakeSendBuffer(pkt, PKT_S_TEST);
+	}
+
+private:
+	template<typename PacketType, typename ProcessFunc>
+	static bool HandlePacket(ProcessFunc func, PacketSessionRef& session, BYTE* buffer, int32 len)
+	{
+		PacketType pkt;
+		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)
+			return false;
+		//buffer에서 pkt로 파싱하여 데이터를 넣어준다. 제대로 파싱이 안됬다면 false
+		return func(session, pkt);//파싱후에 패킷타입에 맞게 넣어준 핸들러펑션을 실행한다.
+	}
+
+	template<typename T>
+	static SendBufferRef MakeSendBuffer(T& pkt, uint16 pktId)
+	{
+		const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
+		const uint16 packetSize = dataSize + sizeof(PacketHeader);
+
+		SendBufferRef sendBuffer = GSendBufferManager->Open(packetSize);
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
+		header->size = packetSize;
+		header->id = pktId;
+		ASSERT_CRASH(pkt.SerializeToArray(&header[1], dataSize));
+		sendBuffer->Close(packetSize);
+
+		return sendBuffer;
+	}
 };
 
-template<typename T>
-SendBufferRef _MakeSendBuffer(T& pkt, uint16 pktId)
-{
-	const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
-	const uint16 packetSize = dataSize + sizeof(PacketHeader);
-
-	SendBufferRef sendBuffer = GSendBufferManager->Open(packetSize);
-
-	PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
-	header->size = packetSize;
-	header->id = pktId;
-
-	ASSERT_CRASH(pkt.SerializeToArray(&header[1], dataSize));
-
-	sendBuffer->Close(packetSize);
-	return sendBuffer;
-}
 
 //
 //template<typename T, typename C>
