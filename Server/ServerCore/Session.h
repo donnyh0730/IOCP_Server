@@ -69,7 +69,7 @@ protected:
 	virtual void		OnDisconnected() { }
 
 private:
-	weak_ptr<Service>	_service;
+	weak_ptr<Service>	_service;//자기자신이 어떤 서비스에 속해 있는지 
 	SOCKET				_socket = INVALID_SOCKET;
 	NetAddress			_netAddress = {};
 	Atomic<bool>		_connected = false;

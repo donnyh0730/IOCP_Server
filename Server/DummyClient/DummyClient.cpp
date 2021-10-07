@@ -7,7 +7,7 @@
 
 char sendData[] = "Hello World !!";
 
-class ServerSession : public PacketSession
+class ServerSession : public PacketSession//클라가 서버를 들고있도록 만든 메모리영역
 {
 public:
 	~ServerSession()
@@ -17,11 +17,9 @@ public:
 
 	virtual void OnConnected() override
 	{
-		Protocol::C_MOVE movePacket;
-		SendBufferRef sendbuffer = ServerPacketHandler::MakeSendBuffer(movePacket);
-
-
-		//cout << "Connected To Server" << endl;
+		Protocol::C_LOGIN pkt;
+		auto sendBuffer = ServerPacketHandler::MakeSendBuffer(pkt);
+		Send(sendBuffer);
 	}
 
 	virtual void OnRecvPacket(BYTE* buffer, int32 len) override
@@ -50,10 +48,10 @@ int main()
 	this_thread::sleep_for(1s);
 
 	ClientServiceRef service = MakeShared<ClientService>(
-		NetAddress(L"127.0.0.1", 7777),
+		NetAddress(L"127.0.0.1", 7777),/*서버 주소*/
 		MakeShared<IocpCore>(),
-		MakeShared<ServerSession>, // TODO : SessionManager 등
-		1);
+		MakeShared<ServerSession>,//이클라이언트 서비스는 서버를 ServerSession으로 들고 있도록한다. 
+		10);//서버세션 n개를 관리하고있으면 같은 클라이언트 n개가 접속한것 처럼 할 수있다. 
 
 	ASSERT_CRASH(service->Start());
 
@@ -66,6 +64,16 @@ int main()
 					service->GetIocpCore()->Dispatch();
 				}
 			});
+	}
+
+	Protocol::C_CHAT chatPkt;
+	chatPkt.set_msg(u8"Hello World !");
+	auto sendBuffer = ServerPacketHandler::MakeSendBuffer(chatPkt);
+
+	while (true)
+	{
+		service->SendAllToServer(sendBuffer);
+		this_thread::sleep_for(1s);
 	}
 
 	GThreadManager->Join();

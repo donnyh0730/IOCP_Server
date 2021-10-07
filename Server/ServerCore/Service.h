@@ -17,7 +17,8 @@ using SessionFactory = function<SessionRef(void)>;
 /*Service
 이친구는 IocpCore라는 컴플리션포트와 Session의 Set을 가지고있다 즉, 클라이언트 세션들에 대한 관리
 밑 각각클라이언트의 소켓을 통한 컴플리션포트에 들어오는 이벤트 타입에 따라 서버 서비스를 주체하므로
-서버 어플리케이션의 본체 라고 할 수 있겠다.
+서버 어플리케이션의 본체 라고 할 수 있겠다. 
+주의 : 서비스는 session을 상속받은 클래스가 아니다.
 */
 class Service : public enable_shared_from_this<Service>
 {
@@ -31,6 +32,8 @@ public:
 	virtual void		CloseService();
 	void				SetSessionFactory(SessionFactory func) { _sessionFactory = func; }
 
+
+	void				Broadcast(SendBufferRef sendBuffer);
 	SessionRef			CreateSession();
 	void				AddSession(SessionRef session);
 	void				ReleaseSession(SessionRef session);

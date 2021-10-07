@@ -100,6 +100,7 @@ bool Session::RegisterConnect()
 
 	DWORD numOfBytes = 0;
 	SOCKADDR_IN sockAddr = GetService()->GetNetAddress().GetSockAddr();
+	//sockAddr는 생성자에 넣어준 NetAddress(L"127.0.0.1", 7777),/*서버 주소*/를 가져온다. 
 	if (false == SocketUtils::ConnectEx(_socket, reinterpret_cast<SOCKADDR*>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, &_connectEvent))
 	{
 		int32 errorCode = ::WSAGetLastError();
@@ -162,7 +163,7 @@ void Session::RegisterSend()
 		return;
 
 	_sendEvent.Init();
-	_sendEvent.owner = shared_from_this();//Add_ref
+	_sendEvent.owner = shared_from_this();//Add_ref 및 오너 등록
 
 	//세션의 샌드큐에 쌓인 데이터를 sendEvent에 벡터에 쑤셔넣는 작업.
 	{
@@ -190,6 +191,7 @@ void Session::RegisterSend()
 	}
 
 	DWORD numOfBytes = 0;
+	//IOCP큐에 이벤트타입, 데이터버퍼 사이즈들을 푸쉬해놓는다.
 	if (SOCKET_ERROR == ::WSASend(_socket, wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), OUT & numOfBytes, 0, &_sendEvent, nullptr))
 	{
 		int32 errorCode = ::WSAGetLastError();
@@ -208,6 +210,8 @@ void Session::ProcessConnect()
 
 	// 세션 등록
 	GetService()->AddSession(GetSessionRef());
+	//1. 서버에서 이코드로 들어온경우. 클라이언트세션을 자신이 관리하게끔 등록한다.
+	//2. 클라에서 이코드로 들어온경우. 서버세션을 등록한다. 
 
 	// 컨텐츠 코드에서 오버로딩
 	OnConnected();
@@ -258,7 +262,9 @@ void Session::ProcessRecv(int32 numOfBytes)
 
 void Session::ProcessSend(int32 numOfBytes)
 {
-	_sendEvent.owner = nullptr; // RELEASE_REF
+	//이미 iocp큐가 소켓샌드를 하고난 다음에 이부분이 실행될 것이다. 거의 정리작업.
+
+	_sendEvent.owner = nullptr; // RELEASE_REF 
 	_sendEvent.sendBuffers.clear();//RELASE_REF
 
 	if (numOfBytes == 0)
@@ -305,20 +311,19 @@ PacketSession::~PacketSession()
 }
 
 // [size(2)][id(2)][data....][size(2)][id(2)][data....]
-int32 PacketSession::OnRecv(BYTE* buffer, int32 len/*30*/)//len = 실제 받은 잘린경우도 있다.
+int32 PacketSession::OnRecv(BYTE* buffer, int32 len)//len = 실제 받은 잘린경우도 있다.
 {
 	int32 processLen = 0;
 
 	while (true)
 	{
-		int32 dataSize/*30*/ = len/*30*/ - processLen/*0*/;
-		// 최소한 헤더는 파싱할 수 있어야 한다
-		if (dataSize/*30*/ < sizeof(PacketHeader)/*4*/)
+		int32 dataSize = len - processLen;
+		if (dataSize < sizeof(PacketHeader))
 			break;
 
 		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&buffer[processLen]));
 		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
-		if (dataSize/*30*/ < header.size/*36*/)//여기서 processlen 0으로 리턴
+		if (dataSize < header.size)
 			break;
 
 		// 패킷 조립 성공

@@ -77,16 +77,17 @@ void Listener::Dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
 
 void Listener::RegisterAccept(AcceptEvent* acceptEvent)
 {
-	SessionRef session = _service->CreateSession(); // Register IOCP
+	//1.이 클라이언트 전용 세션,소켓을 만든다.
+	SessionRef session = _service->CreateSession();//만들면서 동시에 IOCP에세션(소켓)을 등록도 해준다.
 
 	acceptEvent->Init();
 	acceptEvent->session = session;
 
 	DWORD bytesReceived = 0;
-	//기본적으로 accept()를 호출한 것이기 때문에 논블로킹 옵션을 걸지않는 이상 여기서 블로킹이 걸려있게 된다.
+	//기본적으로 WSAaccept()를 호출한 것이기 때문에 논블로킹 옵션을 걸지않는 이상 여기서 블로킹이 걸려있게 된다.
 	if (false == SocketUtils::AcceptEx(
-		_socket, 
-		session->GetSocket(), 
+		_socket, //리스너 자기자신의 소켓
+		session->GetSocket(), //만들어준 전용 세션에 바인딩 해주게될거다.
 		session->_recvBuffer.WritePos(), 
 		0, 
 		sizeof(SOCKADDR_IN) + 16, 
@@ -94,7 +95,7 @@ void Listener::RegisterAccept(AcceptEvent* acceptEvent)
 		OUT & bytesReceived, 
 		static_cast<LPOVERLAPPED>(acceptEvent)))
 	{
-		//보통 false 인데 여기로 들어오게되면 펜딩이 걸려있을 확율이 높다. 펜딩이 걸렸을경우도 false를 리턴하기 때문이다.
+		//보통 여기로 잘 안들어오는데 들어오게되면 펜딩이 걸려있을 확율이 높다. 펜딩이 걸렸을경우도 false를 리턴하기 때문이다.
 		const int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)//에러중에 펜딩이 아닌경우는 진짜 문제가 있는경우이므로,
 		{
@@ -103,7 +104,7 @@ void Listener::RegisterAccept(AcceptEvent* acceptEvent)
 		}
 	}
 }
-/*
+/* AcceptEx
 BOOL
 (PASCAL FAR * LPFN_ACCEPTEX)(
 	_In_ SOCKET sListenSocket,
@@ -128,6 +129,7 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 
 	SOCKADDR_IN sockAddress;
 	int32 sizeOfSockAddr = sizeof(sockAddress);
+	//sockaddress와 피어네임을 가져온다. 그런데 peername이 안가져와진다는건 버그상황
 	if (SOCKET_ERROR == ::getpeername(session->GetSocket(), OUT reinterpret_cast<SOCKADDR*>(&sockAddress), &sizeOfSockAddr))
 	{
 		RegisterAccept(acceptEvent);
@@ -135,6 +137,8 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 	}
 
 	session->SetNetAddress(NetAddress(sockAddress));
-	session->ProcessConnect();
+	session->ProcessConnect();//서버에있는 클라이언트세션
+
 	RegisterAccept(acceptEvent);
+	return;
 }

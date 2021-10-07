@@ -34,10 +34,10 @@ bool IocpCore::Dispatch(uint32 timeoutMs)
 	ULONG_PTR key = 0;
 	//계속 관찰하면서 컴플리션 포트에 일감이 들어올때까지 쓰레드를 쉬고있는다.
 	//등록된 소켓에서 일감이 오면 위의 두개의 (iocpObject,iocpEvent)널포인터가 채워지면서 리턴하게된다.
-	IocpEvent* iocpEvent = nullptr;
+	IocpEvent* iocpEvent = nullptr;//애초에 등록할때 event타입이 정해져서 큐에 들어가있으므로 밖으로 뽑기위한포인터.
 	if (::GetQueuedCompletionStatus(_iocpHandle, OUT & numOfBytes, OUT & key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
 	{
-		IocpObjectRef iocpObject = iocpEvent->owner;
+		IocpObjectRef iocpObject = iocpEvent->owner;//레지스터할때 이미 오너가 등록이되어 있다. 
 		iocpObject->Dispatch(iocpEvent, numOfBytes);
 	}
 	else
