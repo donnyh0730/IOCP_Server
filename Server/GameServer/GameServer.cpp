@@ -24,7 +24,9 @@ void DoWorkerJob(ServerServiceRef& service)
 
 		// 네트워크 입출력 처리 RecvPacket의 경우 -> 핸들패킷
 		service->GetIocpCore()->Dispatch(10);//10밀리세컨드 타임아웃.
-
+		
+		//예약된 일감 처리.
+		ThreadManager::DistributeReservedJobs();
 		// 핸들패킷에서 잡큐에 푸쉬된일감 처리 
 		ThreadManager::DoGlobalQueueWork();
 	}
@@ -32,6 +34,10 @@ void DoWorkerJob(ServerServiceRef& service)
 
 int main()
 {
+	GRoom->DoTimer(1000, []() {cout << "Hello 1000" << endl; });
+	GRoom->DoTimer(2000, []() {cout << "Hello 2000" << endl; });
+	GRoom->DoTimer(3000, []() {cout << "Hello 3000" << endl; });
+
 	ClientPacketHandler::Init();
 
 	ServerServiceRef service = MakeShared<ServerService>(
