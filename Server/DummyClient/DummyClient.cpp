@@ -51,7 +51,7 @@ int main()
 		NetAddress(L"127.0.0.1", 7777),/*서버 주소*/
 		MakeShared<IocpCore>(),
 		MakeShared<ServerSession>,//이클라이언트 서비스는 서버를 ServerSession으로 들고 있도록한다. 
-		10);//서버세션 n개를 관리하고있으면 같은 클라이언트 n개가 접속한것 처럼 할 수있다. 
+		100);//서버세션 n개를 관리하고있으면 같은 클라이언트 n개가 접속한것 처럼 할 수있다. 
 
 	ASSERT_CRASH(service->Start());
 

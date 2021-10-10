@@ -33,7 +33,7 @@ public:
 	void				SetSessionFactory(SessionFactory func) { _sessionFactory = func; }
 
 
-	void				Broadcast(SendBufferRef sendBuffer);
+	void				SendAllToServer(SendBufferRef sendBuffer);
 	SessionRef			CreateSession();
 	void				AddSession(SessionRef session);
 	void				ReleaseSession(SessionRef session);

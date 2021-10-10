@@ -72,7 +72,8 @@ bool Handle_C_ENTER_GAME(PacketSessionRef& session, Protocol::C_ENTER_GAME& pkt)
 	// TODO : Validation
 
 	PlayerRef player = gameSession->_players[index]; // READ_ONLY?
-	GRoom.Enter(player); // WRITE_LOCK
+
+	GRoom->DoAsync(&Room::Enter, player);
 
 	Protocol::S_ENTER_GAME enterGamePkt;
 	enterGamePkt.set_success(true);
@@ -86,12 +87,16 @@ bool Handle_C_CHAT(PacketSessionRef& session, Protocol::C_CHAT& pkt)
 {
 	std::cout << pkt.msg() << endl;
 
+	//패킷 처리영역-------------------------------------
+	//IOCPCore -> SocketIO Detect -> Dispatch-> &Session -> OnRecvPacket -> HandlePacket->here 
 	Protocol::S_CHAT chatPkt;
 	chatPkt.set_msg(pkt.msg());
 	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(chatPkt);
+	//-------------------------------------------------
 
-	GRoom.Broadcast(sendBuffer); // WRITE_LOCK
-
+	//게임 로직영역-------------------------------------
+	GRoom->DoAsync(&Room::Broadcast, sendBuffer);
+	//-------------------------------------------------
 	return true;
 }
 

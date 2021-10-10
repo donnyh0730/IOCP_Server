@@ -7,6 +7,28 @@
 #include "BufferWriter.h"
 #include "ClientPacketHandler.h"
 #include "Protocol.pb.h"
+#include "Job.h"
+#include "Room.h"
+#include "Player.h"
+
+enum
+{
+	WORKER_TICK = 64
+};
+
+void DoWorkerJob(ServerServiceRef& service)
+{
+	while (true)
+	{
+		LEndTickCount = ::GetTickCount64() + WORKER_TICK;
+
+		// 네트워크 입출력 처리 RecvPacket의 경우 -> 핸들패킷
+		service->GetIocpCore()->Dispatch(10);//10밀리세컨드 타임아웃.
+
+		// 핸들패킷에서 잡큐에 푸쉬된일감 처리 
+		ThreadManager::DoGlobalQueueWork();
+	}
+}
 
 int main()
 {
@@ -23,13 +45,16 @@ int main()
 
 	for (int32 i = 0; i < 5; i++)
 	{
-		GThreadManager->Launch([=]() {
+		GThreadManager->Launch([&service]() {
 			while (true)
 			{
-				service->GetIocpCore()->Dispatch();
+				DoWorkerJob(service);
 			}
 			});
 	}
+
+	// Main Thread
+	DoWorkerJob(service);
 
 	GThreadManager->Join();
 }
