@@ -1,6 +1,12 @@
 #pragma once
 #include "DBConnection.h"
 
+/*
+* 이 클래스는 DBStatment 객체에 변수를 바인딩 할때 편리하게 사용하도록 구현되어 있다.
+* 모든 지정된 파라미터의 갯수만큼 바인딩이 완료 되어야만 excute를 실행할 수 있게되기 때문에
+* 쿼리에러를 줄일 수 있다. 
+*/
+
 template<int32 C>
 struct FullBits { enum { value = (1 << (C - 1)) | FullBits<C - 1>::value }; };
 
@@ -26,6 +32,7 @@ public:
 
 	bool Validate()
 	{
+		//처음 지정해준 파라미터 카운트 갯수가 전부다 바인딩 되었는지를 검사함.
 		return _paramFlag == FullBits<ParamCount>::value && _columnFlag == FullBits<ColumnCount>::value;
 	}
 
@@ -100,7 +107,10 @@ protected:
 	DBConnection& _dbConnection;
 	const WCHAR* _query;
 	SQLLEN			_paramIndex[ParamCount > 0 ? ParamCount : 1];
+	//PramCount가 0보다 큰가? 맞으면 ParamCount로 : 아니면 1로 
 	SQLLEN			_columnIndex[ParamCount > 0 ? ParamCount : 1];
+	/*위의 두 변수는 컴파일 타임에 결정되는데 컴파일러가 삼항연산자의 결과를가지고 
+	클래스를 만들어주기때문에 가능한 코드이다...*/
 	uint64			_paramFlag;
 	uint64			_columnFlag;
 };
