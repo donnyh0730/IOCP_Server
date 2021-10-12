@@ -12,7 +12,7 @@ void JobTimer::Reserve(uint64 tickAfter, weak_ptr<JobQueue> owner, JobRef job)
 
 }
 
-void JobTimer::Distribute(uint64 now)
+void JobTimer::Distribute(uint64 currentTime)
 {
 	//한번에 한 쓰레드만 통과
 	if (_distributing.exchange(true) == true)
@@ -24,7 +24,7 @@ void JobTimer::Distribute(uint64 now)
 		while (_items.empty() == false)
 		{
 			const TimerItem& timeritem = _items.top();
-			if (now < timeritem.executeTick)
+			if (currentTime < timeritem.executeTick)
 				break;
 
 			items.push_back(timeritem);

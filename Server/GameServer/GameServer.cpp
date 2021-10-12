@@ -10,6 +10,7 @@
 #include "Job.h"
 #include "Room.h"
 #include "Player.h"
+#include "DBConnectionPool.h"
 
 enum
 {
@@ -34,9 +35,77 @@ void DoWorkerJob(ServerServiceRef& service)
 
 int main()
 {
-	GRoom->DoTimer(1000, []() {cout << "Hello 1000" << endl; });
-	GRoom->DoTimer(2000, []() {cout << "Hello 2000" << endl; });
-	GRoom->DoTimer(3000, []() {cout << "Hello 3000" << endl; });
+	
+	//
+
+	ASSERT_CRASH(GDBConnectionPool->Connect(1, L"Driver={SQL Server Native Client 11.0};Server=(localdb)\\MSSQLLocalDB;Database=ServerDb;Trusted_Connection=Yes;"));
+
+	// Create Table
+	{
+		auto query = L"									\
+			DROP TABLE IF EXISTS [dbo].[Gold];			\
+			CREATE TABLE [dbo].[Gold]					\
+			(											\
+				[id] INT NOT NULL PRIMARY KEY IDENTITY, \
+				[gold] INT NULL							\
+			);";
+
+		DBConnection* dbConn = GDBConnectionPool->Pop();
+		ASSERT_CRASH(dbConn->Execute(query));
+		GDBConnectionPool->Push(dbConn);
+	}
+
+	// Add Data
+	for (int32 i = 0; i < 3; i++)
+	{
+		DBConnection* dbConn = GDBConnectionPool->Pop();
+		// 기존에 바인딩 된 정보 날림
+		dbConn->Unbind();
+
+		// 넘길 인자 바인딩
+		int32 gold = 100;
+		SQLLEN len = 0;
+
+		// 넘길 인자(값) 바인딩 지금은 gold라는 변수가 들어간다.즉, VALUES(?)물음표안에 들어갈 값을 바인딩 해놓는 것이다.
+		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+
+		// SQL 실행
+		ASSERT_CRASH(dbConn->Execute(L"INSERT INTO [dbo].[Gold]([gold]) VALUES(?)"));
+
+		GDBConnectionPool->Push(dbConn);
+	}
+
+	// Read
+	{
+		DBConnection* dbConn = GDBConnectionPool->Pop();
+		// 기존에 바인딩 된 정보 날림
+		dbConn->Unbind();
+
+		int32 gold = 100;
+		SQLLEN len = 0;
+		// 넘길 인자 바인딩
+		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+
+		int32 outId = 0;
+		SQLLEN outIdLen = 0;
+		ASSERT_CRASH(dbConn->BindCol(1, SQL_C_LONG, sizeof(outId), &outId, &outIdLen));
+		//받아올 정보를 어디에 기입할 건지 collum을 바인딩 하는것.
+
+		int32 outGold = 0;
+		SQLLEN outGoldLen = 0;
+		ASSERT_CRASH(dbConn->BindCol(2, SQL_C_LONG, sizeof(outGold), &outGold, &outGoldLen));
+
+		// SQL 실행
+		ASSERT_CRASH(dbConn->Execute(L"SELECT id, gold FROM [dbo].[Gold] WHERE gold = (?)"));
+		//gold가 (?)인 로우를 전부 가져오게한다. 여기서는 golg가 100인 애들의 id와 gold 가져온다.
+
+		while (dbConn->Fetch())//쿼리를 실행하고 fetch를 해야 비로소 바인딩해주었던 메모리에 값이 적히게된다.
+		{
+			cout << "Id: " << outId << " Gold : " << outGold << endl;
+		}
+
+		GDBConnectionPool->Push(dbConn);
+	}
 
 	ClientPacketHandler::Init();
 
