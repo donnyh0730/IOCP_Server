@@ -16,7 +16,8 @@ GlobalQueue*		GGlobalQueue = nullptr;
 JobTimer*			GJobTimer = nullptr;
 
 DeadLockProfiler*	GDeadLockProfiler = nullptr;
-DBConnectionPool* GDBConnectionPool = nullptr;
+DBConnectionPool*	GDBConnectionPool = nullptr;
+ConsoleLog*			GConsoleLogger = nullptr;
 class CoreGlobal
 {
 public:
@@ -30,6 +31,7 @@ public:
 
 		GDeadLockProfiler = new DeadLockProfiler();
 		GDBConnectionPool = new DBConnectionPool();
+		GConsoleLogger = new ConsoleLog();
 		SocketUtils::Init();
 	}
 	~CoreGlobal()
@@ -42,6 +44,7 @@ public:
 
 		delete GDeadLockProfiler;
 		delete GDBConnectionPool;
+		delete GConsoleLogger;
 		SocketUtils::Clear();
 	}
 }GCoreGlobal;

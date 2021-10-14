@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <GameDB>
   <Table name="Gold" desc="골드 테이블">
-    <Column name="id" type="int" notnull="true" />
+    <Column name="id" type="int" notnull="true" identity="1,1" />
     <Column name="gold" type="int" notnull="false" />
     <Column name="name" type="nvarchar(50)" notnull="false" />
     <Column name="createDate" type="datetime" notnull="false" />
