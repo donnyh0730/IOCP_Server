@@ -48,7 +48,7 @@ using Stack = stack<Type, Container>;
 template <typename Type, typename Container = Vector<Type>,typename Pred = less<typename Container::value_type>>
 using PriorityQueue = priority_queue<Type, Container, Pred>;
 
-using String = basic_string<char, char_traits<char>, StlAllocator<char>>;
+//using String = basic_string<char, char_traits<char>, StlAllocator<char>>;
 
-using WString = basic_string<wchar_t, char_traits<wchar_t>, StlAllocator<wchar_t>>;
+using String = basic_string<wchar_t, char_traits<wchar_t>, StlAllocator<wchar_t>>;
 

@@ -108,7 +108,7 @@ protected:
 	const WCHAR* _query;
 	SQLLEN			_paramIndex[ParamCount > 0 ? ParamCount : 1];
 	//PramCount가 0보다 큰가? 맞으면 ParamCount로 : 아니면 1로 
-	SQLLEN			_columnIndex[ParamCount > 0 ? ParamCount : 1];
+	SQLLEN			_columnIndex[ColumnCount > 0 ? ColumnCount : 1];
 	/*위의 두 변수는 컴파일 타임에 결정되는데 컴파일러가 삼항연산자의 결과를가지고 
 	클래스를 만들어주기때문에 가능한 코드이다...*/
 	uint64			_paramFlag;
